@@ -20,6 +20,7 @@ class Game:
     RANGE_GRID_H = (30, 300)
     MAX_GRID_X = 700
 
+    ROBOT_SPAWN_GAP = 3
     ROBOT_COM_RANGE = 5
     ROBOT_FIRE_RANGE = 10
 
@@ -29,13 +30,40 @@ class Game:
 
         self._generate_classes()
 
-        self.target_pos = self.Position(
+        self.target_pos = self.generate_position()
+        self.target_hp = random.randint(*self.RANGE_TARGET_HP)
+
+        self.robots = []
+
+    def generate_position(self):
+        """Generate a random position on the game grid."""
+        return self.Position(
             x=random.randrange(self.grid_w),
             y=random.randrange(self.grid_h),
         )
-        self.target_hp = random.randint(*self.RANGE_TARGET_HP)
 
-        # Dispatch robots
+    def generate_robot(self):
+        """Generate a robot at a random position.
+
+        It must be at distance at least {ROBOT_SPAWN_GAP} from all other entities.
+        """
+        forbidden_positions = []
+        forbidden_positions.extend(robot.position for robot in self.robots)
+
+        while True:
+            spawn_position = self.generate_position()
+            if any(
+                    spawn_position.distance(pos) < self.ROBOT_SPAWN_GAP
+                    for pos in forbidden_positions):
+                continue
+
+            return self.Robot(position=spawn_position)
+
+    def spawn_robots(self):
+        nb_robots = random.randint(*self.RANGE_NB_ROBOTS)
+        self.robots.extend(
+            self.generate_robot()
+            for _ in range(nb_robots))
 
     def _generate_classes(game):
         @dataclass
@@ -61,17 +89,11 @@ class Game:
 
         @dataclass
         class Robot:
-            id: int
             position: Position
-            order: str
-            messages: dict
-
-            def __hash__(self):
-                return hash(self.id)
+            message: str = ""
 
             def reset(self):
-                self.order = None
-                self.messages = {}
+                self.message = ""
 
             def hold(self):
                 """Do nothing. This is the default order."""
@@ -85,13 +107,14 @@ class Game:
                 if game.target_pos != target:
                     return
 
-            def message(self, message):
+            def send_message(self, message):
                 """Send a message.
 
                 At the start of the next turn,
                 all other robots in communication range
                 will receive that message.
                 """
+                self.message = message
 
         game.Robot = Robot
         game.Position = Position
