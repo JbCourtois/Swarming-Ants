@@ -98,6 +98,7 @@ class Game:
         class Robot:
             position: Position
             message: str = ""
+            lol = 3
 
             def reset(self):
                 self.message = ""
