@@ -71,9 +71,16 @@ class Game:
             x: int
             y: int
 
-            def move(self, shift_x, shift_y):
-                self.x = (self.x + shift_x) % game.grid_w
-                self.y = (self.y + shift_y) % game.grid_h
+            def shift(self, shift_x, shift_y, in_place=True):
+                new_x = (self.x + shift_x) % game.grid_w
+                new_y = (self.y + shift_y) % game.grid_h
+
+                if not in_place:
+                    return self.__class__(x=new_x, y=new_y)
+
+                self.x = new_x
+                self.y = new_y
+                return self
 
             def distance(self, other):
                 """Compute the Manhattan distance between two points.
@@ -101,7 +108,7 @@ class Game:
             def move(self, direction):
                 if (shift := DIRECTIONS.get(direction)) is None:
                     raise RobotCommandError('Invalid direction')
-                self.position.move(*shift)
+                self.position.shift(*shift)
 
             def fire(self, target):
                 if game.target_pos != target:

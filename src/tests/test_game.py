@@ -22,15 +22,14 @@ class PositionTestCase(TestCase):
     def test_move(self):
         pos = self.game.Position(0, 0)
 
-        pos.move(1, 2)
-        self.assertEqual(pos.x, 1)
-        self.assertEqual(pos.y, 2)
+        new_pos = pos.shift(1, 2, in_place=False)
+        self.assertEqual(new_pos.x, 1)
+        self.assertEqual(new_pos.y, 2)
 
-        pos.move(-1, -2)
-        self.assertEqual(pos.x, 0)
-        self.assertEqual(pos.y, 0)
+        new_pos.shift(-1, -2)
+        self.assertEqual(new_pos, pos)
 
-        pos.move(-1, -2)
+        pos.shift(-1, -2)
         self.assertEqual(pos.x, self.game.grid_w - 1)
         self.assertEqual(pos.y, self.game.grid_h - 2)
 
